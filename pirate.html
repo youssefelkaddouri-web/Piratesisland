@@ -1,387 +1,416 @@
 <!DOCTYPE html>
-<title>Island Adventure</title>
+<html lang="ca">
 
-<style>
-#stage
-{
-    position: relative;
-    width: 384px;
-    height: 384px;
-    background-image: url("images/background.png");
-}
-.cell
-{
-    display: block;
-    position: absolute;
-    width: 64px;
-    height: 64px;
-}
-p
-{
-    width: 400px;
-}
-</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Supervivent a l'Illa</title>
 
-<div id="stage"></div>
-<p id="output"></p>
-
-<script>
-
-var stage = document.querySelector("#stage");
-var output = document.querySelector("#output");
-
-//Add a keyboard listener
-window.addEventListener("keydown", keydownHandler, false);
-
-//The game map
-var map =
-[
-    [0, 2, 0, 0, 0, 3],
-    [0, 0, 0, 1, 0, 0],
-    [0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 2, 0],
-    [0, 2, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0]
-];
-
-var gameObjects = 
-[
-    [0, 0, 0, 0, 0, 0],
-    [0, 0, 5, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0],
-    [4, 0, 0, 0, 0, 0]
-];
-
-//Map Code
-var WATER = 0;
-var ISLAND = 1;
-var PIRATE = 2;
-var HOME = 3;
-var SHIP = 4;
-var MONSTER = 5;
- 
-//Arrow key codes
- var UP = 38;
- var DOWN = 40;
- var RIGHT = 39;
- var LEFT = 37;
-
-//The size of each cell
-var SIZE = 64;
-//Number of rows and columns
-var ROWS = map.length;
-var COLUMNS = map[0].length;
-
-//An automatic way of setting the ship's start position
-var shipRow;
-var shipColumn;
-var monsterRow;
-var monsterColumn;
-
-//The game variables
-var food = 10;
-var gold = 10;
-var experience = 0;
-var gameMessage = "Use the arrow keys to find your way home."
-
-
-for(var row = 0; row < ROWS; row++)
-{
-    for(var column = 0; column < COLUMNS; column++)
-    {
-        if(gameObjects[row][column] === SHIP){
-            shipRow = row;
-            shipColumn = column;
+    <style>
+        body {
+            background-color: #2c3e50;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-        if(gameObjects[row][column] === MONSTER){
-            monsterRow = row;
-            monsterColumn = column;
+
+        #contenedor-principal {
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
-    }
-}
 
+        #hud {
+            text-align: center;
+            margin-bottom: 15px;
+            background-color: #1a252f;
+            padding: 15px;
+            border-radius: 5px;
+        }
 
-render();
+        #hud h2 {
+            margin: 0 0 10px 0;
+        }
 
-function keydownHandler(event)
-{
-    switch(event.keyCode)
-    {
-        case UP:
-            if(shipRow > 0){
-                gameObjects[shipRow][shipColumn] = 0;
-                shipRow--;
-                gameObjects[shipRow][shipColumn] = SHIP;
-                food--;
+        #corazon-posix {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+            min-height: 32px;
+        }
+
+        .icon-corazon {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* FINESTRA DE LA CÀMERA */
+        #game-window {
+            width: 640px;
+            height: 448px;
+            overflow: hidden;
+            position: relative;
+            border: 4px solid #f1c40f;
+            border-radius: 5px;
+            margin: 0 auto;
+            background-color: #1E90FF;
+        }
+
+        /* MAPA RECTANGULAR GEGANT */
+        #stage {
+            position: absolute;
+            width: 1024px;
+            height: 640px;
+            background-image: url("images/Isla Desierta.png");
+            background-size: 100% 100%;
+            transition: top 0.15s ease-out, left 0.15s ease-out;
+        }
+
+        .cell {
+            display: block;
+            position: absolute;
+            width: 64px;
+            height: 64px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="contenedor-principal">
+        <div id="hud">
+            <h2>🏝️ SUPERVIVENT A L'ILLA</h2>
+
+            <div id="corazon-posix"></div>
+
+            <p style="margin: 5px 0;">🪵 Fustes: <span id="wood-display">0</span> / 5</p>
+
+            <p id="output" style="color: #f1c40f; font-weight: bold; margin-top: 10px; min-height: 24px;"></p>
+        </div>
+
+        <div id="game-window">
+            <div id="stage"></div>
+        </div>
+    </div>
+
+    <script>
+        var stage = document.querySelector("#stage");
+        var output = document.querySelector("#output");
+        var contvidas = document.querySelector("#corazon-posix");
+        var woodDisplay = document.querySelector("#wood-display");
+
+        window.addEventListener("keydown", keydownHandler, false);
+
+        var SIZE = 64;
+
+        // CODIS DELS ELEMENTS
+        var WATER = 0;
+        var TREE = 1;
+        var PLAYER = 2;
+        var BOAT = 4;
+        var SPIDER = 6;
+        var WALL = 9;
+
+        var UP = 38, DOWN = 40, RIGHT = 39, LEFT = 37;
+
+        // ==========================================
+        // 🗺️ ARRAY DEL MAPA
+        // ==========================================
+        var map = [
+            [9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 9, 9], // Vaixell (4)
+            [9, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 9],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9],
+            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+        ];
+
+        var ROWS = map.length;
+        var COLUMNS = map[0].length;
+
+        // ==========================================
+        // VARIABLES DE PERSONATGES I ESTATS
+        // ==========================================
+        var gameObjects = [];
+
+        var playerRow = 4;
+        var playerCol = 4;
+
+        // ARA TENIM UNA LLISTA (ARRAY) D'ARANYES
+        var spiders = [
+            { row: 7, col: 14 } // L'aranya inicial
+        ];
+
+        var woodCount = 0;
+        var vidas = 3;
+        var gameMessage = "";
+        var turnCounter = 0;
+        var gameOver = false;
+
+        // Inicialitzar gameObjects buit
+        for (var r = 0; r < ROWS; r++) {
+            gameObjects[r] = [];
+            for (var c = 0; c < COLUMNS; c++) {
+                gameObjects[r][c] = WATER;
             }
-        break;
-
-        case DOWN:
-            if(shipRow < ROWS - 1 ){
-                gameObjects[shipRow][shipColumn] = 0;
-                shipRow++;
-                gameObjects[shipRow][shipColumn] = SHIP;
-                food--;
-            }
-        break;
-
-        case LEFT:
-            if(shipColumn > 0){
-                gameObjects[shipRow][shipColumn] = 0;
-                shipColumn--;
-                gameObjects[shipRow][shipColumn] = SHIP;
-                food--;
-            }
-        break;
-
-        case RIGHT:
-            if(shipColumn < COLUMNS - 1)
-            {
-                gameObjects[shipRow][shipColumn] = 0;
-                shipColumn++;
-                gameObjects[shipRow][shipColumn] = SHIP;
-                food--;
-            }
-        break;
-    }
-
-    switch(map[shipRow][shipColumn])
-    {
-        case WATER:
-            gameMessage = "You sail the open seas."
-        break;
-
-        case PIRATE:
-            fight();
-        break;
-
-        case ISLAND:
-            trade();
-        break;
-
-        case HOME:
-            endGame();
-        break;
-
-    }
-
-    moveMonster();
-
-    if(gameObjects[shipRow][shipColumn] === MONSTER)
-    {
-        endGame();
-    }
-    if(food <=0 || gold <=0)
-    {
-        endGame();
-    }
-
-    render();
-}
-
-function moveMonster(){
-
-    var UP = 1;
-    var DOWN = 2;
-    var LEFT = 3;
-    var RIGHT = 4;
-
-    var validDirections = [];
-
-    var direction = undefined;
-
-    if(monsterRow > 0)
-    {
-        var thingAbove = map[monsterRow - 1][monsterColumn];
-        if (thingAbove === WATER) validDirections.push(UP); 
-    }
-    if(monsterRow < ROWS -1)
-    {
-        var thingBelow = map[monsterRow + 1][monsterColumn];
-        if (thingBelow === WATER) validDirections.push(DOWN); 
-    }
-     if(monsterColumn > 0)
-    {
-        var thingToTheLeft = map[monsterRow][monsterColumn - 1];
-        if (thingToTheLeft === WATER) validDirections.push(LEFT); 
-    }
-     if(monsterColumn < COLUMNS - 1)
-    {
-        var thingToTheRight = map[monsterRow][monsterColumn + 1];
-        if (thingToTheRight === WATER) validDirections.push(RIGHT); 
-    }
-
-    var randomNumber = Math.floor(Math.random() * validDirections.length);
-    direction = validDirections[randomNumber];
-
-    gameObjects[monsterRow][monsterColumn] = 0;
-
-    switch(direction)
-    {
-        case UP:
-            //monsterRow--;
-            gameObjects[--monsterRow][monsterColumn] = MONSTER;
-        break;
-
-        case DOWN:
-            //monsterRow++;
-            gameObjects[++monsterRow][monsterColumn] = MONSTER;
-        break;
-
-        case LEFT:
-            //monsterColumn--;
-            gameObjects[monsterRow][--monsterColumn] = MONSTER;
-        break;
-
-        case RIGHT:
-            //monsterColumn++;
-            gameObjects[monsterRow][++monsterColumn] = MONSTER;
-        break;
-    }
-
-}
-
-
-function fight(){
-    var shipStrength = Math.ceil((food + gold) / 2);
-
-    var pirateStrength = Math.ceil(Math.random() * shipStrength * 2);
-
-    if(pirateStrength > shipStrength)
-    {
-        var stolenGold = Math.round(pirateStrength / 2);
-        gold -= stolenGold;
-
-        experience += 1;
-
-        gameMessage = "You fight and LOSE " + stolenGold + " gold pieces."
-          + " Ship's strength: " + shipStrength
-          + " Pirate strength: " + pirateStrength;
-    }   
-    else
-    {
-        var pirateGold = Math.round(pirateStrength / 2);
-        gold += pirateGold;
-
-        experience += 2;
-
-        gameMessage = "You fight and WIN " + pirateGold + " gold pieces."
-          + " Ship's strength: " + shipStrength
-          + " Pirate strength: " + pirateStrength;
-    }
-}
-
-function trade(){
-    //Figure out how much food the island have and the cost
-    var islandFood = experience + gold;
-    var cost = Math.ceil(Math.random() * islandFood);
-    
-    //Let the player buy food if there's enough gold
-    if (gold > cost)
-    {
-        food += islandFood;
-        gold -= cost;
-        experience += 2;
-
-        gameMessage = "you buy " + islandFood + " coconuts"
-           + " for " + cost + " gold pieces."
-    }
-    else
-    {   //Tell the player if he does not have enough gold
-        experience += 1;
-        gameMessage = "You don't have enough gold to buy food."
-    }
-}
-
-function endGame(){
-    if(map[shipRow][shipColumn] === HOME)
-    {//Calculate the score
-        var score = food + gold+ experience;
-
-        gameMessage = "You made it home ALIVE! " + "Final score: " + score;
-    }
-    if(gameObjects[shipRow][shipColumn] === MONSTER)
-    {
-       gameMessage = "Your ship has been swallowed by a sea monster!";
-    }
-    else
-    {
-        if(gold <= 0)
-        {
-            gameMessage += " You've run out of gold!";
-        }
-        else
-        {
-            gameMessage += " You've run out of food!";   
         }
 
-        gameMessage += " Your crew throws you overboard!";
-    }
+        // Posar personatges inicials
+        gameObjects[playerRow][playerCol] = PLAYER;
+        gameObjects[spiders[0].row][spiders[0].col] = SPIDER;
 
-    //Remove the keyboard listener
-    window.removeEventListener("keydown", keydownHandler, false);
-}
+        render();
 
-function render()
-{
-    //Clear the stage of img tag cells from the previous turn
-    if(stage.hasChildNodes())
-    {
-        for (var i=0; i < ROWS * COLUMNS; i++)
-        {
-            stage.removeChild(stage.firstChild);
-        }
-    }
+        // ==========================================
+        // TEMPORITZADOR: UNA NOVA ARANYA CADA 15 SEGONS
+        // ==========================================
+        var spiderInterval = setInterval(function () {
+            if (gameOver) return; // Si s'ha acabat, no en surten més
 
-    //Render the game by looping through the map arrays
-    for(var row = 0; row < ROWS; row++)
-    {
-        for(var column = 0; column < COLUMNS; column++)
-            {
-                var cell = document.createElement("img");
-                //Set its CSS class to "cell"
-                cell.setAttribute("class", "cell");
-                stage.appendChild(cell);
+            var trobatLloc = false;
+            while (!trobatLloc) {
+                var randRow = Math.floor(Math.random() * ROWS);
+                var randCol = Math.floor(Math.random() * COLUMNS);
 
-                switch(map[row][column])
-                { 
-                    case WATER:
-                        cell.src = "images/water.png";
-                        break;
-                    case ISLAND:
-                        cell.src = "images/island.png";
-                        break;
-                    case PIRATE:
-                        cell.src = "images/pirate.png";
-                        break;
-                    case HOME:
-                        cell.src = "images/home.png";
-                        break;
+                // Si no és un mur i no és el jugador, posem la nova aranya aquí
+                if (map[randRow][randCol] !== WALL && (randRow !== playerRow || randCol !== playerCol) && gameObjects[randRow][randCol] !== SPIDER) {
+
+                    spiders.push({ row: randRow, col: randCol }); // L'afegim a la llista
+                    gameObjects[randRow][randCol] = SPIDER; // L'afegim al mapa visual
+
+                    trobatLloc = true;
                 }
-                switch(gameObjects[row][column])
-                { 
-                    case SHIP:
-                        cell.src = "images/ship.png";
-                        break;
-                    case MONSTER:
-                        cell.src = "images/monster.png";
-                        break;
+            }
+            render(); // Actualitzem la pantalla perquè es vegi de cop
+        }, 15000); // 15000 milisegons = 15 segons
+
+        // ==========================================
+        // MOVIMENT DEL JUGADOR
+        // ==========================================
+        function keydownHandler(event) {
+            if (gameOver) return;
+
+            if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) {
+                event.preventDefault();
+            }
+
+            gameObjects[playerRow][playerCol] = WATER;
+            var moved = false;
+
+            switch (event.keyCode) {
+                case UP:
+                    if (playerRow > 0 && map[playerRow - 1][playerCol] !== WALL) {
+                        playerRow--; moved = true;
+                    }
+                    break;
+                case DOWN:
+                    if (playerRow < ROWS - 1 && map[playerRow + 1][playerCol] !== WALL) {
+                        playerRow++; moved = true;
+                    }
+                    break;
+                case LEFT:
+                    if (playerCol > 0 && map[playerRow][playerCol - 1] !== WALL) {
+                        playerCol--; moved = true;
+                    }
+                    break;
+                case RIGHT:
+                    if (playerCol < COLUMNS - 1 && map[playerRow][playerCol + 1] !== WALL) {
+                        playerCol++; moved = true;
+                    }
+                    break;
+            }
+
+            gameObjects[playerRow][playerCol] = PLAYER;
+
+            if (moved) {
+                turnCounter++;
+                comprovarAccions();
+
+                if (turnCounter % 2 === 0) {
+                    moureAranya();
+                    comprovarAccions();
                 }
 
-                //Position the cell
-                cell.style.top = row * SIZE + "px";
-                cell.style.left = column * SIZE + "px";
+                render();
             }
-    }
+        }
 
-    // Display the game gameMessage
-    output.innerHTML = gameMessage;
+        // ==========================================
+        // MOVIMENT DE TOTES LES ARANYES
+        // ==========================================
+        function moureAranya() {
+            // Repassem la llista d'aranyes una per una
+            for (var i = 0; i < spiders.length; i++) {
+                var currentSpider = spiders[i];
 
-    //Display the playter's food, gold aand experience
-    output.innerHTML += "<br>Gold: " + gold + ", Food: "
-        + food + ", Experience: " + experience;
-}
+                // Esborrem la seva posició vella
+                gameObjects[currentSpider.row][currentSpider.col] = WATER;
 
-</script>
+                var perseguir = Math.random() < 0.3;
+
+                if (perseguir) {
+                    if (currentSpider.row < playerRow && currentSpider.row < ROWS - 1 && map[currentSpider.row + 1][currentSpider.col] !== WALL) currentSpider.row++;
+                    else if (currentSpider.row > playerRow && currentSpider.row > 0 && map[currentSpider.row - 1][currentSpider.col] !== WALL) currentSpider.row--;
+                    else if (currentSpider.col < playerCol && currentSpider.col < COLUMNS - 1 && map[currentSpider.row][currentSpider.col + 1] !== WALL) currentSpider.col++;
+                    else if (currentSpider.col > playerCol && currentSpider.col > 0 && map[currentSpider.row][currentSpider.col - 1] !== WALL) currentSpider.col--;
+                } else {
+                    var direccions = [];
+                    if (currentSpider.row > 0 && map[currentSpider.row - 1][currentSpider.col] !== WALL) direccions.push(UP);
+                    if (currentSpider.row < ROWS - 1 && map[currentSpider.row + 1][currentSpider.col] !== WALL) direccions.push(DOWN);
+                    if (currentSpider.col > 0 && map[currentSpider.row][currentSpider.col - 1] !== WALL) direccions.push(LEFT);
+                    if (currentSpider.col < COLUMNS - 1 && map[currentSpider.row][currentSpider.col + 1] !== WALL) direccions.push(RIGHT);
+
+                    if (direccions.length > 0) {
+                        var randomNum = Math.floor(Math.random() * direccions.length);
+                        var dir = direccions[randomNum];
+
+                        switch (dir) {
+                            case UP: currentSpider.row--; break;
+                            case DOWN: currentSpider.row++; break;
+                            case LEFT: currentSpider.col--; break;
+                            case RIGHT: currentSpider.col++; break;
+                        }
+                    }
+                }
+
+                // Dibuixem la nova posició d'aquesta aranya en concret
+                gameObjects[currentSpider.row][currentSpider.col] = SPIDER;
+            }
+        }
+
+        // ==========================================
+        // REGLES DEL JOC I COL·LISIONS
+        // ==========================================
+        function comprovarAccions() {
+            gameMessage = "";
+
+            if (map[playerRow][playerCol] === TREE) {
+                woodCount++;
+                map[playerRow][playerCol] = WATER;
+            }
+
+            if (map[playerRow][playerCol] === BOAT) {
+                if (woodCount >= 5) {
+                    gameMessage = "🎉 VICTÒRIA! Has arreglat el vaixell i escapat!";
+                    gameOver = true;
+                    clearInterval(spiderInterval); // Parem que surtin més aranyes
+                } else {
+                    gameMessage = "⛵ Necessites " + (5 - woodCount) + " fustes més pel vaixell.";
+                }
+            }
+
+            // Comprovem si ALGUNA aranya de la llista ens ha tocat
+            for (var i = 0; i < spiders.length; i++) {
+                if (playerRow === spiders[i].row && playerCol === spiders[i].col) {
+                    vidas--;
+                    gameMessage = "💥 L'aranya t'ha picat! -1 Vida.";
+
+                    if (vidas <= 0) {
+                        gameMessage = "💀 HAS PERDUT. Les aranyes t'han devorat.";
+                        gameOver = true;
+                        clearInterval(spiderInterval);
+                    } else {
+                        // Si et queda vida, només L'ARANYA QUE T'HA TOCAT se'n va lluny
+                        gameObjects[spiders[i].row][spiders[i].col] = WATER;
+
+                        var posicioValida = false;
+                        while (!posicioValida) {
+                            var randRow = Math.floor(Math.random() * ROWS);
+                            var randCol = Math.floor(Math.random() * COLUMNS);
+
+                            // Lloc lliure de murs
+                            if (map[randRow][randCol] !== WALL && (randRow !== playerRow || randCol !== playerCol)) {
+                                spiders[i].row = randRow;
+                                spiders[i].col = randCol;
+                                posicioValida = true;
+                            }
+                        }
+
+                        gameObjects[spiders[i].row][spiders[i].col] = SPIDER;
+                    }
+                    // Si ens pica una, ja hem perdut la vida, no cal mirar si ens piquen 2 a la vegada
+                    break;
+                }
+            }
+        }
+
+        // ==========================================
+        // DIBUIXAR-HO TOT
+        // ==========================================
+        function render() {
+            contvidas.innerHTML = "";
+            for (var i = 0; i < vidas; i++) {
+                var corazon = document.createElement("img");
+                corazon.src = "images/Corazon.png";
+                corazon.setAttribute("class", "icon-corazon");
+                contvidas.appendChild(corazon);
+            }
+
+            while (stage.hasChildNodes()) {
+                stage.removeChild(stage.firstChild);
+            }
+
+            for (var row = 0; row < ROWS; row++) {
+                for (var column = 0; column < COLUMNS; column++) {
+
+                    var isPlayer = (gameObjects[row][column] === PLAYER);
+                    var isSpider = (gameObjects[row][column] === SPIDER);
+                    var isTree = (map[row][column] === TREE);
+                    var isBoat = (map[row][column] === BOAT);
+
+                    if (isPlayer || isSpider || isTree || isBoat) {
+
+                        var cell = document.createElement("img");
+                        cell.setAttribute("class", "cell");
+
+                        cell.style.top = row * SIZE + "px";
+                        cell.style.left = column * SIZE + "px";
+
+                        if (isPlayer) {
+                            cell.src = "images/Personaje.gif";
+                        } else if (isSpider) {
+                            cell.src = "images/Araña (enemigo).gif";
+                        } else if (isTree) {
+                            cell.src = "images/Tablones.png";
+                        } else if (isBoat) {
+                            cell.src = "images/Vaixell.png";
+                        }
+
+                        stage.appendChild(cell);
+                    }
+                }
+            }
+
+            var windowWidth = 640;
+            var windowHeight = 448;
+
+            var offsetX = (playerCol * SIZE) - (windowWidth / 2) + (SIZE / 2);
+            var offsetY = (playerRow * SIZE) - (windowHeight / 2) + (SIZE / 2);
+
+            var maxOffsetX = (COLUMNS * SIZE) - windowWidth;
+            var maxOffsetY = (ROWS * SIZE) - windowHeight;
+
+            if (offsetX < 0) offsetX = 0;
+            if (offsetY < 0) offsetY = 0;
+            if (offsetX > maxOffsetX) offsetX = maxOffsetX;
+            if (offsetY > maxOffsetY) offsetY = maxOffsetY;
+
+            stage.style.left = -offsetX + "px";
+            stage.style.top = -offsetY + "px";
+
+            woodDisplay.innerHTML = woodCount;
+            output.innerHTML = gameMessage;
+        }
+    </script>
+</body>
+
+</html>
