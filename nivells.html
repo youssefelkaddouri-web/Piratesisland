@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nivells - Supervivent a l'Illa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- FONS ORIGINAL --- */
+        body {
+            background-image: url("images/Island.gif");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #2c3e50;
+            overflow: hidden;
+        }
+
+        /* --- ANIMACIÓ DE FLOTACIÓ DEL MENÚ --- */
+        @keyframes flotar {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* --- ANIMACIÓ D'ENTRADA DELS BOTONS (EFECTE WAW) --- */
+        @keyframes entradaRebot {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.8);
+            }
+
+            70% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1.05);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* --- NOU CARTELL --- */
+        .menu-box {
+            background-color: rgba(222, 184, 135, 0.85);
+            border: 6px solid #8D6E63;
+            box-shadow: 15px 15px 0px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(139, 69, 19, 0.4);
+            padding: 60px 50px;
+            max-width: 750px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: flotar 4s ease-in-out infinite;
+            will-change: transform;
+            border-radius: 10px;
+            /* Un toc més polit */
+        }
+
+        /* --- TEXTOS --- */
+        .menu-box h1 {
+            color: #ff9800;
+            font-size: 32px;
+            /* Una mica més gran */
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 0px #5d4037, 0px 0px 15px rgba(255, 152, 0, 0.5);
+            /* Llum al títol */
+            line-height: 1.4;
+            letter-spacing: 2px;
+        }
+
+        .menu-box p.text {
+            color: #3e2723;
+            font-size: 16px;
+            line-height: 2;
+            margin-bottom: 40px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.5);
+        }
+
+        /* --- CONTENIDOR BOTONS --- */
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        /* --- ESTIL BASE DELS BOTONS ARCADE --- */
+        .menu-box button {
+            font-family: 'Press Start 2P', cursive;
+            padding: 22px 40px;
+            font-size: 18px;
+            /* Text més gran */
+            color: #fff;
+            border: 4px solid;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            /* Necessari per l'efecte de brillantor */
+            cursor: pointer;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+            /* Text més llegible i 3D */
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+
+            /* Animació d'entrada en cascada */
+            opacity: 0;
+            animation: entradaRebot 0.6s forwards;
+        }
+
+        /* Efecte de brillantor (Shine) que passa per sobre */
+        .menu-box button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-25deg);
+            transition: all 0.6s ease;
+            z-index: 1;
+        }
+
+        .menu-box button:hover::before {
+            left: 200%;
+            transition: all 0.6s ease-in-out;
+        }
+
+        /* Delays per a l'entrada en cascada */
+        .btn-facil {
+            animation-delay: 0.2s !important;
+        }
+
+        .btn-normal {
+            animation-delay: 0.4s !important;
+        }
+
+        .btn-dificil {
+            animation-delay: 0.6s !important;
+        }
+
+        .btn-back {
+            animation-delay: 0.8s !important;
+        }
+
+        /* --- BOTÓ FÀCIL (VERD) --- */
+        .btn-facil {
+            background-color: #4caf50;
+            border-color: #2e7d32;
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.2), 0 8px 0px #2e7d32, 0 15px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-facil:hover {
+            background-color: #45a049;
+            transform: translateY(-3px) scale(1.02);
+            /* Afegim el GLOW verd */
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.2), 0 11px 0px #2e7d32, 0 0 20px #4caf50, 0 20px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-facil:active {
+            transform: translateY(6px) scale(0.98);
+            box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.3), 0 2px 0px #2e7d32, 0 5px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- BOTÓ NORMAL (GROC) --- */
+        .btn-normal {
+            background-color: #f1c40f;
+            color: #3e2723;
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.4);
+            /* Ombra clara pel text fosc */
+            border-color: #b8860b;
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #a67c00, 0 15px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-normal:hover {
+            background-color: #f39c12;
+            transform: translateY(-3px) scale(1.02);
+            /* Afegim el GLOW groc */
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 11px 0px #a67c00, 0 0 20px #f1c40f, 0 20px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-normal:active {
+            transform: translateY(6px) scale(0.98);
+            box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.2), 0 2px 0px #a67c00, 0 5px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- BOTÓ DIFÍCIL (VERMELL) --- */
+        .btn-dificil {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.2), 0 8px 0px #c0392b, 0 15px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-dificil:hover {
+            background-color: #e55039;
+            transform: translateY(-3px) scale(1.02);
+            /* Afegim el GLOW vermell */
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.2), 0 11px 0px #c0392b, 0 0 20px #e74c3c, 0 20px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-dificil:active {
+            transform: translateY(6px) scale(0.98);
+            box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.3), 0 2px 0px #c0392b, 0 5px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- BOTÓ TORNAR (GRIS) --- */
+        .btn-back {
+            background-color: #95a5a6;
+            color: #2c3e50;
+            border-color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 35px;
+            padding: 15px 30px;
+            width: auto;
+            display: inline-block;
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.4);
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #7f8c8d, 0 15px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-back:hover {
+            background-color: #8e9295;
+            transform: translateY(-2px);
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 10px 0px #7f8c8d, 0 0 15px #95a5a6, 0 20px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-back:active {
+            transform: translateY(6px);
+            box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.2), 0 2px 0px #7f8c8d, 0 5px 5px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="menu-box">
+        <h1>SELECCIONA NIVELL</h1>
+
+        <p class="text">Quina dificultat vols?</p>
+
+        <div class="buttons-container">
+            <button class="btn-facil" onclick="window.location.href='facil.html?dificultad=facil'">
+                ⭐ FÀCIL
+            </button>
+            <button class="btn-normal" onclick="window.location.href='normal.html?dificultad=normal'">
+                ⭐⭐ NORMAL
+            </button>
+            <button class="btn-dificil" onclick="window.location.href='dificil.html?dificultad=dificil'">
+                ⭐⭐⭐ DIFÍCIL
+            </button>
+        </div>
+
+        <button class="btn-back" onclick="window.location.href='index2.html'">← ENRERE</button>
+    </div>
+
+</body>
+
+</html>

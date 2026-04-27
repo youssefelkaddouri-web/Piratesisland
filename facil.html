@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Supervivent a l'Illa - Jugant (FÀCIL)</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- FONS GLOBAL --- */
+        body {
+            background-image: url("images/Island.gif");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1a2a1f;
+        }
+
+        /* --- CONTENIDOR PRINCIPAL --- */
+        #contenedor-principal {
+            background-color: rgba(222, 184, 135, 0.85);
+            padding: 25px;
+            border-radius: 8px;
+            border: 6px solid #8D6E63;
+            box-shadow: 15px 15px 0px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(139, 69, 19, 0.2);
+        }
+
+        /* --- HUD --- */
+        #hud {
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #3e2723;
+            padding: 20px;
+            border-radius: 5px;
+            border: 4px solid #2b1708;
+            box-shadow: inset 4px 4px 0px rgba(255, 255, 255, 0.1), inset -4px -4px 0px rgba(0, 0, 0, 0.4), 6px 6px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        #hud h2 {
+            margin: 0 0 15px 0;
+            color: #4caf50;
+            font-size: 16px;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        #corazon-posix {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            min-height: 32px;
+        }
+
+        .icon-corazon {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(2px 2px 0px #000);
+        }
+
+        /* Contenidor per a Fustes i Espasa al HUD amb estil de requadre */
+        #hud-items {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin: 5px 0;
+            background-color: rgba(0, 0, 0, 0.25);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #5d4037;
+        }
+
+        #hud-items p {
+            font-size: 10px;
+            color: #ecf0f1;
+            line-height: 1.5;
+            text-shadow: 1px 1px 0px #000;
+            margin: 0;
+        }
+
+        /* L'espasa oculta d'inici */
+        #sword-display {
+            display: none;
+            align-items: center;
+        }
+
+        /* Espasa més gran */
+        #sword-display img {
+            height: 35px;
+            filter: drop-shadow(2px 2px 0px #000);
+        }
+
+        #output {
+            color: #f1c40f !important;
+            font-size: 11px !important;
+            margin-top: 15px !important;
+            min-height: 24px;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        /* --- FINESTRA DE LA CÀMERA DEL JOC --- */
+        #game-window {
+            width: 640px;
+            height: 448px;
+            overflow: hidden;
+            position: relative;
+            border: 6px solid #4a2e15;
+            outline: 4px solid #2b1708;
+            margin: 0 auto;
+            background-color: #1E90FF;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6), 8px 8px 0px rgba(0, 0, 0, 0.4);
+        }
+
+        #stage {
+            position: absolute;
+            width: 1024px;
+            height: 640px;
+            background-image: url("images/Isla Desierta.png");
+            background-size: 100% 100%;
+            transition: top 0.15s ease-out, left 0.15s ease-out;
+        }
+
+        .cell {
+            display: block;
+            position: absolute;
+            width: 64px;
+            height: 64px;
+        }
+
+        /* --- VÍDEO I MENÚS SUPERPOSATS --- */
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+        }
+
+        #vida-video,
+        #vic-video,
+        #kill-video {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+        #game-over-menu,
+        #victory-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(10, 20, 30, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        .menu-box {
+            background-color: rgba(222, 184, 135, 0.95);
+            border: 6px solid #8D6E63;
+            box-shadow: 15px 15px 0px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(139, 69, 19, 0.2);
+            padding: 50px;
+            text-align: center;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        .menu-box h1 {
+            font-size: 35px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-shadow: 4px 4px 0px #5d4037;
+            line-height: 1.4;
+        }
+
+        .title-over {
+            color: #e74c3c;
+        }
+
+        .title-vic {
+            color: #2ecc71;
+        }
+
+        .menu-box p {
+            color: #3e2723;
+            font-size: 12px;
+            line-height: 2;
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+
+        /* --- BOTONS ARCADE --- */
+        button {
+            font-family: 'Press Start 2P', cursive;
+            padding: 15px 25px;
+            font-size: 14px;
+            background-color: #f1c40f;
+            color: #3e2723;
+            border: 4px solid #b8860b;
+            box-shadow: inset -3px -3px 0px rgba(0, 0, 0, 0.1), 0 6px 0px #a67c00, 0 10px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.1s;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #f39c12;
+            transform: translateY(-2px);
+            box-shadow: inset -3px -3px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #a67c00, 0 15px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.1), 0 2px 0px #a67c00, 0 5px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-next {
+            background-color: #2ecc71;
+            color: #fff;
+            border-color: #27ae60;
+            box-shadow: inset -3px -3px 0px rgba(0, 0, 0, 0.1), 0 6px 0px #27ae60, 0 10px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-next:hover {
+            background-color: #27ae60;
+            box-shadow: inset -3px -3px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #219a52, 0 15px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-secundari {
+            background-color: #bdc3c7;
+            border-color: #7f8c8d;
+            box-shadow: inset -3px -3px 0px rgba(0, 0, 0, 0.1), 0 6px 0px #7f8c8d, 0 10px 10px rgba(0, 0, 0, 0.3);
+            font-size: 10px;
+        }
+
+        .btn-secundari:hover {
+            background-color: #ecf0f1;
+            box-shadow: inset -3px -3px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #7f8c8d, 0 15px 15px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="contenedor-principal">
+        <div id="hud">
+            <h2>🏝️ SUPERVIVENT (FÀCIL)</h2>
+            <div id="corazon-posix"></div>
+
+            <div id="hud-items">
+                <p>🪵 Fustes: <span id="wood-display">0</span> / 5</p>
+                <div id="sword-display"><img src="images/espada.gif"></div>
+            </div>
+
+            <p id="output"></p>
+        </div>
+
+        <div id="game-window">
+            <div id="stage"></div>
+        </div>
+    </div>
+
+    <div id="video-overlay">
+        <video id="vida-video" muted style="display: none;">
+            <source src="images/GameOver.mp4" type="video/mp4">
+        </video>
+        <video id="vic-video" muted style="display: none;">
+            <source src="images/barcofinal.mp4" type="video/mp4">
+        </video>
+        <video id="kill-video" muted style="display: none;">
+            <source src="images/MatarAranya.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div id="game-over-menu">
+        <div class="menu-box">
+            <h1 class="title-over">GAME OVER</h1>
+            <p>L'aranya t'ha atrapat i has perdut totes les vides!</p>
+            <button onclick="location.reload()">Tornar a jugar</button>
+            <br>
+            <button class="btn-secundari" onclick="window.location.href='Index2.html'">Menú Principal</button>
+        </div>
+    </div>
+
+    <div id="victory-menu">
+        <div class="menu-box">
+            <h1 class="title-vic">VICTÒRIA!</h1>
+            <p>Has arreglat el vaixell i has escapat de l'illa amb èxit!</p>
+
+            <button class="btn-next" onclick="window.location.href='normal.html?dificultad=normal'">SEGÜENT NIVELL
+                ➔</button>
+            <br>
+            <button class="btn-secundari" onclick="window.location.href='Index2.html'">Menú Principal</button>
+        </div>
+    </div>
+
+    <script>
+        var stage = document.querySelector("#stage");
+        var output = document.querySelector("#output");
+        var contvidas = document.querySelector("#corazon-posix");
+        var woodDisplay = document.querySelector("#wood-display");
+        var swordDisplay = document.querySelector("#sword-display");
+
+        var videoOverlay = document.querySelector("#video-overlay");
+        var vidaVideo = document.querySelector("#vida-video");
+        var vicVideo = document.querySelector("#vic-video");
+        var killVideo = document.querySelector("#kill-video");
+
+        var gameOverMenu = document.querySelector("#game-over-menu");
+        var victoryMenu = document.querySelector("#victory-menu");
+
+        window.addEventListener("keydown", keydownHandler, false);
+
+        var SIZE = 64;
+
+        var WATER = 0, TREE = 1, PLAYER = 2, BOAT = 4, SPIDER = 6, TREASURE = 7, WALL = 9;
+        var UP = 38, DOWN = 40, RIGHT = 39, LEFT = 37;
+        var W = 87, A = 65, S = 83, D = 68;
+
+        // MAPA NETEJAT (Gairebé tot aigua perquè s'hi generin les fustes i el cofre aleatòriament)
+        var map = [
+            [9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 9, 9],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+        ];
+
+        var ROWS = map.length;
+        var COLUMNS = map[0].length;
+
+        var gameObjects = [];
+        var playerRow = 4;
+        var playerCol = 4;
+        var spiders = [{ row: 7, col: 14 }];
+
+        var woodCount = 0;
+        var vidas = 3;
+        var hasSword = false;
+        var gameMessage = "";
+        var turnCounter = 0;
+        var gameOver = false;
+        var isAnimating = false;
+
+        for (var r = 0; r < ROWS; r++) {
+            gameObjects[r] = [];
+            for (var c = 0; c < COLUMNS; c++) {
+                gameObjects[r][c] = WATER;
+            }
+        }
+
+        gameObjects[playerRow][playerCol] = PLAYER;
+        gameObjects[spiders[0].row][spiders[0].col] = SPIDER;
+
+        // 1. Generar 1 cofre del tresor aleatòriament a l'inici
+        var cofresGenerats = 0;
+        while (cofresGenerats < 1) {
+            var rRow = Math.floor(Math.random() * ROWS);
+            var rCol = Math.floor(Math.random() * COLUMNS);
+
+            if (map[rRow][rCol] === WATER && (rRow !== playerRow || rCol !== playerCol)) {
+                map[rRow][rCol] = TREASURE;
+                cofresGenerats++;
+            }
+        }
+
+        // 2. NOU: Generar 5 Fustes de forma aleatòria pel mapa (Nivell Fàcil)
+        var fustesGenerades = 0;
+        while (fustesGenerades < 5) {
+            var fRow = Math.floor(Math.random() * ROWS);
+            var fCol = Math.floor(Math.random() * COLUMNS);
+
+            // Si la casella està buida (és aigua) i no és la del jugador ni la del cofre
+            if (map[fRow][fCol] === WATER && (fRow !== playerRow || fCol !== playerCol)) {
+                map[fRow][fCol] = TREE;
+                fustesGenerades++;
+            }
+        }
+
+        render();
+
+        var spiderInterval = setInterval(function () {
+            if (gameOver || isAnimating) return;
+
+            var trobatLloc = false;
+            while (!trobatLloc) {
+                var randRow = Math.floor(Math.random() * ROWS);
+                var randCol = Math.floor(Math.random() * COLUMNS);
+
+                if (map[randRow][randCol] !== WALL && map[randRow][randCol] !== TREASURE && (randRow !== playerRow || randCol !== playerCol) && gameObjects[randRow][randCol] !== SPIDER) {
+                    spiders.push({ row: randRow, col: randCol });
+                    gameObjects[randRow][randCol] = SPIDER;
+                    trobatLloc = true;
+                }
+            }
+            render();
+        }, 15000);
+
+        function keydownHandler(event) {
+            if (gameOver || isAnimating) return;
+
+            if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) {
+                event.preventDefault();
+            }
+
+            gameObjects[playerRow][playerCol] = WATER;
+            var moved = false;
+
+            switch (event.keyCode) {
+                case UP: case W:
+                    if (playerRow > 0 && map[playerRow - 1][playerCol] !== WALL) { playerRow--; moved = true; }
+                    break;
+                case DOWN: case S:
+                    if (playerRow < ROWS - 1 && map[playerRow + 1][playerCol] !== WALL) { playerRow++; moved = true; }
+                    break;
+                case LEFT: case A:
+                    if (playerCol > 0 && map[playerRow][playerCol - 1] !== WALL) { playerCol--; moved = true; }
+                    break;
+                case RIGHT: case D:
+                    if (playerCol < COLUMNS - 1 && map[playerRow][playerCol + 1] !== WALL) { playerCol++; moved = true; }
+                    break;
+            }
+
+            gameObjects[playerRow][playerCol] = PLAYER;
+
+            if (moved) {
+                turnCounter++;
+                comprovarAccions();
+
+                if (turnCounter % 2 === 0 && !isAnimating && !gameOver) {
+                    moureAranya();
+                    comprovarAccions();
+                }
+
+                render();
+            }
+        }
+
+        function moureAranya() {
+            for (var i = 0; i < spiders.length; i++) {
+                var currentSpider = spiders[i];
+                gameObjects[currentSpider.row][currentSpider.col] = WATER;
+                var perseguir = Math.random() < 0.3;
+
+                if (perseguir) {
+                    if (currentSpider.row < playerRow && currentSpider.row < ROWS - 1 && map[currentSpider.row + 1][currentSpider.col] !== WALL && map[currentSpider.row + 1][currentSpider.col] !== TREASURE) currentSpider.row++;
+                    else if (currentSpider.row > playerRow && currentSpider.row > 0 && map[currentSpider.row - 1][currentSpider.col] !== WALL && map[currentSpider.row - 1][currentSpider.col] !== TREASURE) currentSpider.row--;
+                    else if (currentSpider.col < playerCol && currentSpider.col < COLUMNS - 1 && map[currentSpider.row][currentSpider.col + 1] !== WALL && map[currentSpider.row][currentSpider.col + 1] !== TREASURE) currentSpider.col++;
+                    else if (currentSpider.col > playerCol && currentSpider.col > 0 && map[currentSpider.row][currentSpider.col - 1] !== WALL && map[currentSpider.row][currentSpider.col - 1] !== TREASURE) currentSpider.col--;
+                } else {
+                    var direccions = [];
+                    if (currentSpider.row > 0 && map[currentSpider.row - 1][currentSpider.col] !== WALL && map[currentSpider.row - 1][currentSpider.col] !== TREASURE) direccions.push(UP);
+                    if (currentSpider.row < ROWS - 1 && map[currentSpider.row + 1][currentSpider.col] !== WALL && map[currentSpider.row + 1][currentSpider.col] !== TREASURE) direccions.push(DOWN);
+                    if (currentSpider.col > 0 && map[currentSpider.row][currentSpider.col - 1] !== WALL && map[currentSpider.row][currentSpider.col - 1] !== TREASURE) direccions.push(LEFT);
+                    if (currentSpider.col < COLUMNS - 1 && map[currentSpider.row][currentSpider.col + 1] !== WALL && map[currentSpider.row][currentSpider.col + 1] !== TREASURE) direccions.push(RIGHT);
+
+                    if (direccions.length > 0) {
+                        var randomNum = Math.floor(Math.random() * direccions.length);
+                        var dir = direccions[randomNum];
+
+                        switch (dir) {
+                            case UP: currentSpider.row--; break;
+                            case DOWN: currentSpider.row++; break;
+                            case LEFT: currentSpider.col--; break;
+                            case RIGHT: currentSpider.col++; break;
+                        }
+                    }
+                }
+                gameObjects[currentSpider.row][currentSpider.col] = SPIDER;
+            }
+        }
+
+        function comprovarAccions() {
+            gameMessage = "";
+
+            // Recol·lectar fusta
+            if (map[playerRow][playerCol] === TREE) {
+                woodCount++;
+                map[playerRow][playerCol] = WATER;
+            }
+
+            // Obrir cofre
+            if (map[playerRow][playerCol] === TREASURE) {
+                map[playerRow][playerCol] = WATER; // El cofre desapareix
+
+                // 80% de probabilitats d'aconseguir l'espasa
+                if (Math.random() < 0.80) {
+                    if (!hasSword) {
+                        hasSword = true;
+                        swordDisplay.style.display = "flex";
+                        gameMessage = "⚔️ HAS TROBAT L'ESPASA LLEGENDÀRIA!";
+                    }
+                } else {
+                    gameMessage = "💨 Oh... Aquest cofre estava buit.";
+                }
+            }
+
+            if (map[playerRow][playerCol] === BOAT) {
+                if (woodCount >= 5) {
+                    gameMessage = "🎉 VICTÒRIA! Has arreglat el vaixell i escapat!";
+                    gameOver = true;
+                    isAnimating = true;
+                    clearInterval(spiderInterval);
+
+                    videoOverlay.style.display = "flex";
+                    vidaVideo.style.display = "none";
+                    killVideo.style.display = "none";
+                    vicVideo.style.display = "block";
+                    vicVideo.currentTime = 0;
+                    vicVideo.play();
+
+                    vicVideo.onended = function () {
+                        videoOverlay.style.display = "none";
+                        victoryMenu.style.display = "flex";
+                    };
+
+                } else {
+                    gameMessage = "⛵ Necessites " + (5 - woodCount) + " fustes més.";
+                }
+            }
+
+            // LÒGICA DE COL·LISIÓ AMB ARANYES
+            for (var i = 0; i < spiders.length; i++) {
+                if (playerRow === spiders[i].row && playerCol === spiders[i].col) {
+
+                    var aranyaVençuda = false;
+
+                    // Si tenim l'espasa, tirem els daus (70% probabilitat de guanyar)
+                    if (hasSword) {
+                        if (Math.random() < 0.70) {
+                            gameMessage = "🗡️ Has matat a l'aranya amb l'espasa!";
+                            gameObjects[spiders[i].row][spiders[i].col] = PLAYER;
+                            spiders.splice(i, 1);
+                            i--; // Ajustem l'índex
+                            aranyaVençuda = true;
+
+                            // REPRODUIR VÍDEO DE MATAR ARANYA
+                            isAnimating = true; // Pausem el joc temporalment
+                            videoOverlay.style.display = "flex";
+                            vidaVideo.style.display = "none";
+                            vicVideo.style.display = "none";
+                            killVideo.style.display = "block";
+                            killVideo.currentTime = 0;
+                            killVideo.play();
+
+                            killVideo.onended = function () {
+                                videoOverlay.style.display = "none";
+                                killVideo.style.display = "none";
+                                isAnimating = false; // Reprenem el joc
+                                render(); // Actualitzem la pantalla per si de cas
+                            };
+
+                        } else {
+                            gameMessage = "🛡️ Has fallat! L'aranya t'ha picat igualment. -1 Vida.";
+                        }
+                    }
+
+                    // Si no tenim espasa, O si hem fallat l'atac
+                    if (!hasSword || !aranyaVençuda) {
+                        vidas--;
+
+                        if (vidas <= 0) {
+                            gameMessage = "💀 GAME OVER";
+                            gameOver = true;
+                            clearInterval(spiderInterval);
+                            isAnimating = true;
+
+                            videoOverlay.style.display = "flex";
+                            vicVideo.style.display = "none";
+                            killVideo.style.display = "none";
+                            vidaVideo.style.display = "block";
+                            vidaVideo.currentTime = 0;
+                            vidaVideo.play();
+
+                            vidaVideo.onended = function () {
+                                videoOverlay.style.display = "none";
+                                gameOverMenu.style.display = "flex";
+                            };
+
+                        } else {
+                            if (!hasSword) {
+                                gameMessage = "💥 L'aranya t'ha picat! -1 Vida.";
+                            }
+
+                            gameObjects[spiders[i].row][spiders[i].col] = WATER;
+
+                            var posicioValida = false;
+                            while (!posicioValida) {
+                                var randRow = Math.floor(Math.random() * ROWS);
+                                var randCol = Math.floor(Math.random() * COLUMNS);
+
+                                if (map[randRow][randCol] !== WALL && map[randRow][randCol] !== TREASURE && (randRow !== playerRow || randCol !== playerCol)) {
+                                    spiders[i].row = randRow;
+                                    spiders[i].col = randCol;
+                                    posicioValida = true;
+                                }
+                            }
+                            gameObjects[spiders[i].row][spiders[i].col] = SPIDER;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        function render() {
+            contvidas.innerHTML = "";
+            for (var i = 0; i < vidas; i++) {
+                var corazon = document.createElement("img");
+                corazon.src = "images/Corazon.png";
+                corazon.setAttribute("class", "icon-corazon");
+                contvidas.appendChild(corazon);
+            }
+
+            while (stage.hasChildNodes()) {
+                stage.removeChild(stage.firstChild);
+            }
+
+            for (var row = 0; row < ROWS; row++) {
+                for (var column = 0; column < COLUMNS; column++) {
+
+                    var isPlayer = (gameObjects[row][column] === PLAYER);
+                    var isSpider = (gameObjects[row][column] === SPIDER);
+                    var isTree = (map[row][column] === TREE);
+                    var isBoat = (map[row][column] === BOAT);
+                    var isTreasure = (map[row][column] === TREASURE);
+
+                    if (isPlayer || isSpider || isTree || isBoat || isTreasure) {
+
+                        var cell = document.createElement("img");
+                        cell.setAttribute("class", "cell");
+                        cell.style.top = row * SIZE + "px";
+                        cell.style.left = column * SIZE + "px";
+
+                        if (isPlayer) {
+                            cell.src = "images/Personaje.gif";
+                        } else if (isSpider) {
+                            cell.src = "images/Araña (enemigo).gif";
+                        } else if (isTree) {
+                            cell.src = "images/Tablones.png";
+                        } else if (isBoat) {
+                            cell.src = "images/Vaixell.png";
+                        } else if (isTreasure) {
+                            cell.src = "images/CofreTesoro.gif";
+                        }
+
+                        stage.appendChild(cell);
+                    }
+                }
+            }
+
+            var windowWidth = 640;
+            var windowHeight = 448;
+
+            var offsetX = (playerCol * SIZE) - (windowWidth / 2) + (SIZE / 2);
+            var offsetY = (playerRow * SIZE) - (windowHeight / 2) + (SIZE / 2);
+
+            var maxOffsetX = (COLUMNS * SIZE) - windowWidth;
+            var maxOffsetY = (ROWS * SIZE) - windowHeight;
+
+            if (offsetX < 0) offsetX = 0;
+            if (offsetY < 0) offsetY = 0;
+            if (offsetX > maxOffsetX) offsetX = maxOffsetX;
+            if (offsetY > maxOffsetY) offsetY = maxOffsetY;
+
+            stage.style.left = -offsetX + "px";
+            stage.style.top = -offsetY + "px";
+
+            woodDisplay.innerHTML = woodCount;
+            output.innerHTML = gameMessage;
+        }
+    </script>
+</body>
+
+</html>
