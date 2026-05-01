@@ -40,20 +40,16 @@
         .menu-box {
             /* Color sorra caribeny AMB transparència (0.85) */
             background-color: rgba(222, 184, 135, 0.85);
-
             /* Vora marró fusta */
             border: 6px solid #8D6E63;
-
             /* Ombra projectada i ombra interior per donar volum */
             box-shadow: 15px 15px 0px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(139, 69, 19, 0.2);
-
             /* Dimensions més grans */
             padding: 60px 50px;
             max-width: 750px;
             width: 90%;
             text-align: center;
             position: relative;
-
             /* Moviment de flotació constant */
             animation: flotar 4s ease-in-out infinite;
             will-change: transform;
@@ -89,22 +85,30 @@
             text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
         }
 
-        /* --- BOTÓ ARCADE --- */
+        /* --- CONTENIDOR DELS BOTONS --- */
+        .botons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            /* Espai entre els botons */
+        }
+
+        /* --- BOTÓ ARCADE PRINCIPAL (Groc) --- */
         .menu-box button {
             font-family: 'Press Start 2P', cursive;
             padding: 20px 40px;
             font-size: 18px;
-            /* Botó més gran */
             background-color: #f1c40f;
-            /* Groc */
             color: #3e2723;
             border: 4px solid #b8860b;
-
-            /* Efecte botó físic 3D */
             box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #a67c00, 0 15px 15px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             text-transform: uppercase;
             transition: all 0.1s;
+            width: 100%;
+            max-width: 450px;
+            /* Limitem l'amplada perquè no siguin gegants */
         }
 
         .menu-box button:hover {
@@ -116,6 +120,26 @@
         .menu-box button:active {
             transform: translateY(6px);
             box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.1), 0 2px 0px #a67c00, 0 5px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- BOTÓ ARCADE SECUNDARI (Blau - Per les instruccions) --- */
+        .menu-box .btn-instruccions {
+            background-color: #3498db;
+            color: #fff;
+            border-color: #2980b9;
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 8px 0px #1f618d, 0 15px 15px rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+            /* Una mica més petit per donar jerarquia visual */
+            padding: 15px 30px;
+        }
+
+        .menu-box .btn-instruccions:hover {
+            background-color: #2980b9;
+            box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.1), 0 10px 0px #1a5276, 0 20px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .menu-box .btn-instruccions:active {
+            box-shadow: inset -2px -2px 0px rgba(0, 0, 0, 0.1), 0 2px 0px #1a5276, 0 5px 5px rgba(0, 0, 0, 0.4);
         }
     </style>
 </head>
@@ -129,7 +153,15 @@
 
         <p class="hint">👉 Fes servir les FLETXES del teclat per moure't</p>
 
-        <button onclick="window.location.href='Nivells.html'">COMENÇA EL JOC</button>
+        <!-- Contenidor per alinear els dos botons correctament -->
+        <div class="botons-container">
+            <!-- Botó existent -->
+            <button onclick="window.location.href='Nivells.html'">COMENÇA EL JOC</button>
+
+            <!-- Nou botó del Manual d'Instruccions -->
+            <button class="btn-instruccions" onclick="window.location.href='instruccions.html'">MANUAL
+                D'INSTRUCCIONS</button>
+        </div>
     </div>
 
 </body>
